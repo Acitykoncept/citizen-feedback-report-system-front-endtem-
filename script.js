@@ -1,93 +1,113 @@
 const form = document.getElementById("requestForm");
 
+// Centralized API endpoint URL
+// const API_ENDPOINT = 'https://citizen-report-system-backend.onrender.com/api/v1/report';
+const API_ENDPOINT = 'http://localhost:3000/api/v1/report';
+
+// Function to handle API request
+const sendReport = async (requestData) => {
+    try {
+        // Log the request data to ensure all fields are present
+        for (let [key, value] of Object.entries(requestData)) {
+            console.log(key, value);
+        }
+        
+
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            body: requestData,  
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server Error: ${response.statusText}`);
+        }
+
+        return response;
+    } catch (error) {
+        throw new Error(`Request failed: ${error.message}`);
+    }
+};
+
+
+// Handle form submission
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
-    // Get form data
+
     const formData = new FormData(form);
-    
+
+    // Ensure all required fields are filled out
+    const requiredFields = ['name', 'email', 'phone', 'category', 'description', 'image'];
+    for (const field of requiredFields) {
+        if (!formData.get(field)) {
+            alert(`Please fill out the ${field} field.`);
+            return;
+        }
+    }
+
     // Get geolocation
+    let position = null;
     try {
-        const position = await new Promise((resolve, reject) => {
+        position = await new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject);
         });
-
-        // Prepare the request data
-        const requestData = {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            phoneNumber: formData.get('phone'),
-            category: formData.get('category') === 'others' ? formData.get('input-category') : formData.get('category'),
-            description: formData.get('description'),
-            latitude: position.coords.latitude.toString(),
-            longitude: position.coords.longitude.toString()
-        };
-
-        // Handle image upload
-        const imageFile = formData.get('image');
-        if (imageFile) {
-            const reader = new FileReader();
-            const imageData = await new Promise((resolve) => {
-                reader.onload = () => resolve(reader.result);
-                reader.readAsDataURL(imageFile);
-            });
-            requestData.image = imageData;
-        }
-
-        // Send the request
-        const response = await fetch('http://localhost:3000/api/v1/report', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams(requestData)
-        });
-
-        if (response.ok) {
-            alert('Report submitted successfully!');
-            form.reset();
-        } else {
-            throw new Error('Failed to submit report');
-        }
-
-    } catch (error) {
-        console.error('Error:', error);
-        // Fallback to IP-based geolocation
+    } catch (geoError) {
+        console.error("Geolocation Error:", geoError);
+        // Fallback to IP-based geolocation if geolocation fails
         try {
             const ipResponse = await fetch('http://ip-api.com/json');
             const ipData = await ipResponse.json();
-            
-            // Retry submission with IP-based location
-            const requestData = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                phoneNumber: formData.get('phone'),
-                category: formData.get('category') === 'others' ? formData.get('input-category') : formData.get('category'),
-                description: formData.get('description'),
-                latitude: ipData.lat.toString(),
-                longitude: ipData.lon.toString()
-            };
 
-            const response = await fetch('http://localhost:3000/api/v1/report', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+            position = {
+                coords: {
+                    latitude: ipData.lat,
+                    longitude: ipData.lon,
                 },
-                body: new URLSearchParams(requestData)
-            });
-
-            if (response.ok) {
-                alert('Report submitted successfully!');
-                form.reset();
-            } else {
-                alert('Failed to submit report. Please try again.');
-            }
+            };
         } catch (ipError) {
-            console.error('IP Geolocation Error:', ipError);
-            alert('Failed to get location. Please try again.');
+            console.error("IP Geolocation Error:", ipError);
+            alert('Failed to determine your location. Please try again later.');
+            return;
         }
     }
+
+    // Add geolocation data to formData
+    formData.append('latitude', position.coords.latitude.toString());
+    formData.append('longitude', position.coords.longitude.toString());
+
+    // Handle image upload (optional, as FormData already handles files)
+    const imageFile = formData.get('image');
+    if (imageFile) {
+        const reader = new FileReader();
+        try {
+            const imageData = await new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(imageFile);
+            });
+            formData.append('image', imageData); // This may not be necessary, FormData will handle the file
+        } catch (imageError) {
+            console.error('Image Upload Error:', imageError);
+            alert('Failed to upload the image. Please try again.');
+            return;
+        }
+    }
+
+    // Send the report
+    try {
+        const response = await sendReport(formData); // Pass the FormData object here
+
+        if (response.ok) {
+            alert('Report submitted successfully!');
+            // form.reset();
+        } else {
+            alert('Failed to submit the report. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert(`Error: ${error.message}`);
+    }
 });
+
 
 // Handle category change for "Others" option
 const inputCategory = document.getElementById("input-category");
