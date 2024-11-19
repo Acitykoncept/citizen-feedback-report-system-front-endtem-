@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Feedback and Reporting System</title>
+    <style>
+        /* General Body Styling */
+        body {
+            margin-block: 1rem;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #befabe;
+            /* Green and White for Nigerian theme */
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container Styling */
+        .form-container {
+            width: 90%;
+            max-width: 500px;
+            background-color: #006747;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding-inline: 20px;
+            padding-block: 30px;
+        }
+
+        /* Heading Styling */
+        h1 {
+            text-align: center;
+            color: #fff;
+        }
+
+        /* Form Styling */
+        .request-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 16px;
+        }
+
+        input,
+        textarea,
+        button,
+        select,
+        option {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: rgb(99, 98, 98);
+            color: #fff;
+            outline: none;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgb(240, 240, 240) !important;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        input[type="file"] {
+            cursor: pointer;
+        }
+
+        /* Submit Button Styling */
+        button {
+            background-color: #D1D3D4;
+            color: black;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #B0B3B4;
+        }
+
+        .coat-of-arm {
+            height: auto;
+            width: 8rem;
+        }
+
+        ._3mtt-logo {
+            height: auto;
+            width: 4rem;
+        }
+
+        #input-category-label,
+        #input-category {
+            display: none;
+        }
+
+        .logo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+        <div>
+            <div class="logo">
+                <img src="3mtt.png" alt="3mtt logo" class="_3mtt-logo">
+                <img src="coat of arm.png" alt="Nigerian Coat of arm" class="coat-of-arm">
+            </div>
+        </div>
+        <h1>Citizen Feedback and Reporting System</h1>
+        <form id="requestForm" class="request-form">
+            <!-- Name Field -->
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required placeholder="Enter your Full Name">
+
+            <!-- Email Field -->
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required placeholder="Enter a valid email address">
+
+            <!-- Phone numbers Field -->
+            <label for="email">Phone number:</label>
+            <input type="text" id="phone" name="phone" required placeholder="Enter a valid phone number">
+
+            <!-- Description Field -->
+            <label for="description">Description (max 250 characters):</label>
+            <textarea id="description" name="description" maxlength="250" required
+                placeholder="Describe what happened, add any important observations"></textarea>
+
+            <!-- Category -->
+            <label for="category">Category</label>
+            <select name="category" id="category">
+                <option value="" default>--------------- Select a category ---------------</option>
+                <option value="Road maintenance">Road Maintenance</option>
+                <option value="Waste overflow">Waste Overflow</option>
+                <option value="Electricity issues">Electricity Issues</option>
+                <option value="Water Supply">Water Supply</option>
+                <option value="others">Other</option>
+            </select>
+
+            <label for="input-category" id="input-category-label">Please Input Category</label>
+            <input type="text" name="input-category" id="input-category" placeholder="Please enter custom category">
+
+            <!-- Image Upload Field -->
+            <label for="image">Upload Media:</label>
+            <input type="file" id="image" name="image" accept="image/*">
+
+            <!-- Submit Button -->
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+    <!-- <script>
+        async function submitForm() {
+            const form = document.getElementById('requestForm');
+            const formData = new FormData(form);
+
+            // Get user's geolocation
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject);
+            });
+
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            // Convert image to Base64
+            const imageFile = formData.get('image');
+            let imageURL = '';
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    imageURL = reader.result;
+                };
+                reader.readAsDataURL(imageFile);
+                await new Promise((resolve) => (reader.onloadend = resolve));
+            }
+
+            // Data to send
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                description: formData.get('description'),
+                imageURL,
+                latitude,
+                longitude
+            };
+
+            // Send data to Google Sheets via Apps Script
+            const response = await fetch('https://script.google.com/macros/s/AKfycbxaJHYffgC9eby0GZOYN0-_iwEQdfmNO0nyUmxOxg78luBDWcpN34iuu-dZ_sYf02gYiw/exec', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                alert('Request submitted successfully!');
+            } else {
+                alert('Failed to submit the request.');
+            }
+        }
+    </script> -->
+</body>
+
+</html>
